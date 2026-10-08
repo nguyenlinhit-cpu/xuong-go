@@ -110,23 +110,107 @@ Truy cập trình duyệt: **http://localhost:8000** (Tự động chuyển về
 
 ---
 
-### Cách 3: Chạy Bằng Docker (Dành cho Windows / Linux / macOS)
+### Cách 3: Chạy Bằng Docker Trên Windows (Khuyên Dùng Nếu Không Cài Python)
 
-Chỉ cần cài đặt Docker Desktop, không cần cài đặt Python.
+Chỉ cần cài đặt Docker Desktop, toàn bộ môi trường và dữ liệu sẽ chạy độc lập trong container mà không làm ảnh hưởng đến hệ điều hành Windows của bạn.
 
-#### Cách nhanh nhất với Docker Compose:
-```bash
+---
+
+#### 1. Yêu Cầu Trước Khi Cài Đặt
+- Windows 10 (64-bit: Pro, Enterprise hoặc Home từ build 19041 trở lên) hoặc Windows 11.
+- Bật tính năng ảo hóa (**Hardware Virtualization** / VT-x hoặc AMD-V) trong BIOS/UEFI của máy tính (thường mặc định đã bật).
+- Đã cài đặt **WSL 2** (Windows Subsystem for Linux 2).
+
+---
+
+#### 2. Các Bước Cài Đặt Docker Desktop Trên Windows
+
+1. **Bật WSL 2 trên Windows (nếu chưa có):**
+   - Mở **PowerShell** bằng quyền Administrator (chuột phải chọn *Run as Administrator*).
+   - Chạy lệnh:
+     ```powershell
+     wsl --install
+     ```
+   - Nếu máy tính đã có WSL nhưng là bản cũ, chạy lệnh cập nhật:
+     ```powershell
+     wsl --update
+     ```
+   - Khởi động lại máy tính (Restart) nếu được yêu cầu.
+
+2. **Tải bộ cài đặt Docker Desktop:**
+   - 🔗 **Link tải chính thức từ Docker:** [https://docs.docker.com/desktop/setup/install/windows-install/](https://docs.docker.com/desktop/setup/install/windows-install/)
+   - Hoặc tải trực tiếp file cài đặt: [Docker Desktop Installer for Windows (x86_64)](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
+
+3. **Tiến hành cài đặt:**
+   - Nhấp đúp vào file `Docker Desktop Installer.exe` vừa tải về.
+   - Khi màn hình cài đặt hiện ra, đảm bảo tích chọn:
+     -  **Use WSL 2 instead of Hyper-V (recommended)**
+     -  **Add shortcut to desktop**
+   - Nhấn **OK** và chờ quá trình cài đặt hoàn tất.
+   - Nhấn **Close and restart** để khởi động lại máy tính.
+
+4. **Khởi động Docker Desktop:**
+   - Mở ứng dụng **Docker Desktop** từ màn hình Desktop hoặc menu Start.
+   - Chấp nhận điều khoản sử dụng (**Accept Terms**).
+   - Chờ khoảng 1-2 phút cho đến khi biểu tượng con cá voi ở góc dưới bên trái chuyển sang màu xanh lá cây (**Engine running**).
+
+5. **Kiểm tra cài đặt thành công:**
+   - Mở **PowerShell** hoặc **Command Prompt (CMD)** và gõ:
+     ```powershell
+     docker --version
+     docker compose version
+     ```
+   - Nếu hiển thị thông tin phiên bản Docker (ví dụ `Docker version 27.x.x` hoặc mới hơn) là bạn đã cài đặt thành công!
+
+---
+
+#### 3. Khởi Chạy Ứng Dụng Xưởng Gỗ Trên Windows
+
+Mở **PowerShell** hoặc **Terminal** tại thư mục dự án `xuong-go` trên Windows:
+
+##### Cách nhanh nhất: Dùng Docker Compose (1 lệnh duy nhất)
+```powershell
 docker compose up -d --build
 ```
+> Lệnh này sẽ tự động:
+> - Tải môi trường Python 3.11-slim
+> - Cài đặt tất cả thư viện
+> - Khởi tạo database và dữ liệu mẫu nếu chưa có
+> - Gắn volume thư mục để dữ liệu `wood_factory.db` và ảnh sản phẩm `uploads` được lưu an toàn trên máy tính của bạn
+> - Mở cổng `8000` và chạy ứng dụng dưới nền (`-d`)
 
-#### Hoặc chạy bằng lệnh Docker CLI:
-```bash
+##### Dừng ứng dụng:
+```powershell
+docker compose down
+```
+
+##### Xem log hoạt động thực tế của web:
+```powershell
+docker compose logs -f
+```
+
+---
+
+##### Hoặc chạy bằng lệnh Docker CLI thủ công:
+```powershell
 # 1. Build image:
 docker build -t xuong-go-app:latest .
 
-# 2. Chạy container:
-docker run -d -p 8000:8000 -v ${PWD}/wood_factory.db:/app/wood_factory.db --name web-quan-ly-xuong-go xuong-go-app:latest
+# 2. Khởi chạy container:
+docker run -d `
+  --name web-quan-ly-xuong-go `
+  -p 8000:8000 `
+  -v ${PWD}/wood_factory.db:/app/wood_factory.db `
+  -v ${PWD}/app/static/uploads:/app/app/static/uploads `
+  --restart unless-stopped `
+  xuong-go-app:latest
 ```
+
+---
+
+#### 4. Truy Cập Ứng Dụng:
+Mở trình duyệt (Chrome, Edge, Cốc Cốc...) trên Windows và truy cập:
+👉 **[http://localhost:8000](http://localhost:8000)**
 
 ---
 
