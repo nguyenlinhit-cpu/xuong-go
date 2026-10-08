@@ -1,0 +1,12 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+test_wood_factory.db
+backups/*.db
+flake.nix
+flake.lock
+.env

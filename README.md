@@ -110,6 +110,26 @@ Truy cập trình duyệt: **http://localhost:8000** (Tự động chuyển về
 
 ---
 
+### Cách 3: Chạy Bằng Docker (Dành cho Windows / Linux / macOS)
+
+Chỉ cần cài đặt Docker Desktop, không cần cài đặt Python.
+
+#### Cách nhanh nhất với Docker Compose:
+```bash
+docker compose up -d --build
+```
+
+#### Hoặc chạy bằng lệnh Docker CLI:
+```bash
+# 1. Build image:
+docker build -t xuong-go-app:latest .
+
+# 2. Chạy container:
+docker run -d -p 8000:8000 -v ${PWD}/wood_factory.db:/app/wood_factory.db --name web-quan-ly-xuong-go xuong-go-app:latest
+```
+
+---
+
 ## 🔑 Tài Khoản Mặc Định
 
 Hệ thống đã phân quyền sẵn 4 vai trò chính:

@@ -1,0 +1,16 @@
+services:
+  xuong-go:
+    build: .
+    image: xuong-go-app:latest
+    container_name: web-quan-ly-xuong-go
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      # Giữ lại dữ liệu database và ảnh sản phẩm trên máy chủ khi tắt/mở container
+      - ./wood_factory.db:/app/wood_factory.db
+      - ./app/static/uploads:/app/app/static/uploads
+      - ./backups:/app/backups
+    environment:
+      - SECRET_KEY=xuong-go-secret-key-super-secure-2026
+      - PORT=8000
