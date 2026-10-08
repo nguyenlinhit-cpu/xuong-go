@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title | default("Xưởng Gỗ Phúc Thịnh - Quản Lý Sản Xuất & Kho") }}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        wood: {
+                            50: '#fdf8f4',
+                            100: '#f7eee4',
+                            200: '#edd8c4',
+                            300: '#dfbc9b',
+                            400: '#ce986f',
+                            500: '#bf7b4d',
+                            600: '#a8623d',
+                            700: '#8c4e33',
+                            800: '#72412e',
+                            900: '#5e3728',
+                            950: '#341c14',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-header {
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.92);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; font-size: 12pt; }
+            .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl { box-shadow: none !important; }
+            .border { border: 1px solid #cbd5e1 !important; }
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="no-print w-64 bg-slate-900 text-slate-300 flex-shrink-0 flex flex-col transition-all duration-300 z-30 shadow-xl border-r border-slate-800">
+            <!-- Brand Logo -->
+            <div class="h-16 flex items-center px-5 bg-slate-950 border-b border-slate-800 justify-between">
+                <a href="/dashboard" class="flex items-center space-x-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-600/30 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-tree text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-white text-base tracking-wide block leading-tight">XƯỞNG GỖ</span>
+                        <span class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Phúc Thịnh Pro</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="flex-1 overflow-y-auto py-4 px-3 space-y-6 scrollbar-thin">
+                <!-- Nhóm 1: Tổng quan -->
+                <div>
+                    <a href="/dashboard" class="flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {% if request.url.path == '/dashboard' %}bg-amber-600 text-white shadow-md shadow-amber-600/20{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                        <i class="fa-solid fa-chart-pie w-5 text-center mr-3"></i>
+                        <span>Bàn làm việc</span>
+                    </a>
+                </div>
+
+                <!-- Nhóm 2: Kho & Vật tư -->
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Kho & Vật tư</p>
+                    <div class="space-y-1">
+                        <a href="/materials" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/materials' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-cubes-stacked w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Nguyên liệu & Gỗ</span>
+                        </a>
+                        <a href="/suppliers" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/suppliers' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-truck-field w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Nhà cung cấp</span>
+                        </a>
+                        <a href="/inventory/receipts" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/inventory/receipts' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-arrow-down-to-bracket w-5 text-center mr-3 text-emerald-400"></i>
+                            <span>Phiếu Nhập kho</span>
+                        </a>
+                        <a href="/inventory/issues" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/inventory/issues' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-arrow-up-from-bracket w-5 text-center mr-3 text-rose-400"></i>
+                            <span>Phiếu Xuất kho</span>
+                        </a>
+                        <a href="/inventory/transactions" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/inventory/transactions' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-clock-rotate-left w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Lịch sử biến động</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Nhóm 3: Bán hàng -->
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Bán hàng</p>
+                    <div class="space-y-1">
+                        <a href="/products" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/products' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-couch w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Sản phẩm & Định mức BOM</span>
+                        </a>
+                        <a href="/customers" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/customers' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-users w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Khách hàng & Công nợ</span>
+                        </a>
+                        <a href="/orders" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/orders' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-file-invoice-dollar w-5 text-center mr-3 text-amber-400"></i>
+                            <span>Đơn hàng & Báo giá</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Nhóm 4: Sản xuất & Thợ -->
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Sản xuất & Nhân công</p>
+                    <div class="space-y-1">
+                        <a href="/production" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/production' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-hammer w-5 text-center mr-3 text-amber-500"></i>
+                            <span>Lệnh sản xuất & Tiến độ</span>
+                        </a>
+                        <a href="/workers" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/workers' in request.url.path and not '/timesheets' in request.url.path and not '/advances' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-helmet-safety w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Hồ sơ thợ mộc</span>
+                        </a>
+                        <a href="/workers/timesheets" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/workers/timesheets' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-calendar-check w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Chấm công hàng ngày</span>
+                        </a>
+                        <a href="/workers/advances" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/workers/advances' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-hand-holding-dollar w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Tạm ứng lương</span>
+                        </a>
+                        <a href="/payroll" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/payroll' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-calculator w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Bảng lương tháng</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Nhóm 5: Tài chính -->
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Tài chính & Sổ quỹ</p>
+                    <div class="space-y-1">
+                        <a href="/finance/cashbook" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/finance/cashbook' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-book-bookmark w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Sổ quỹ thu chi</span>
+                        </a>
+                        <a href="/finance/reports" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/finance/reports' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-chart-line w-5 text-center mr-3 text-slate-400"></i>
+                            <span>Báo cáo doanh thu & Lãi</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Nhóm 6: Hệ thống -->
+                <div>
+                    <p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Cấu hình & Dữ liệu</p>
+                    <div class="space-y-1">
+                        {% if current_user and current_user.role == 'Admin' %}
+                        <a href="/users" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/users' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-user-shield w-5 text-center mr-3 text-indigo-400"></i>
+                            <span>Quản lý tài khoản</span>
+                        </a>
+                        <a href="/system/backup" class="flex items-center px-3 py-2 rounded-lg text-sm transition-colors {% if '/system/backup' in request.url.path %}bg-slate-800 text-amber-400 font-semibold{% else %}hover:bg-slate-800 hover:text-white{% endif %}">
+                            <i class="fa-solid fa-database w-5 text-center mr-3 text-emerald-400"></i>
+                            <span>Sao lưu & Khôi phục DB</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Mini Profile -->
+            <div class="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-3 overflow-hidden">
+                    <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-amber-400 flex-shrink-0">
+                        {{ current_user.full_name[:1] if current_user else "U" }}
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-medium text-white truncate">{{ current_user.full_name if current_user else "Khách" }}</p>
+                        <p class="text-xs text-slate-400 truncate">{{ current_user.role if current_user else "Chưa đăng nhập" }}</p>
+                    </div>
+                </div>
+                <a href="/logout" title="Đăng xuất" class="text-slate-400 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 transition-colors">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <!-- TOP HEADER -->
+            <header class="no-print h-16 glass-header border-b border-slate-200/80 px-6 flex items-center justify-between z-20 flex-shrink-0">
+                <div class="flex items-center space-x-4">
+                    <button id="toggle-sidebar" class="text-slate-500 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-800 flex items-center">
+                            {{ title | default("Hệ Thống Quản Lý Xưởng Gỗ") }}
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <a href="/dashboard" class="flex items-center text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors">
+                        <i class="fa-solid fa-circle text-emerald-500 mr-2 text-[8px] animate-pulse"></i>
+                        Xưởng Gỗ Đang Hoạt Động
+                    </a>
+
+                    <div class="h-6 w-px bg-slate-200"></div>
+
+                    <a href="/logout" class="text-xs font-semibold text-rose-600 hover:text-rose-700 px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 transition-colors flex items-center">
+                        <i class="fa-solid fa-arrow-right-from-bracket mr-1.5"></i>
+                        Thoát
+                    </a>
+                </div>
+            </header>
+
+            <!-- FLASH NOTIFICATIONS -->
+            {% if flashes %}
+            <div class="no-print px-6 pt-4 space-y-2">
+                {% for flash in flashes %}
+                <div class="flex items-center p-4 rounded-xl border shadow-sm {% if flash.category == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-900{% elif flash.category == 'danger' %}bg-rose-50 border-rose-200 text-rose-900{% elif flash.category == 'warning' %}bg-amber-50 border-amber-200 text-amber-900{% else %}bg-sky-50 border-sky-200 text-sky-900{% endif %}" role="alert">
+                    <i class="{% if flash.category == 'success' %}fa-solid fa-circle-check text-emerald-600{% elif flash.category == 'danger' %}fa-solid fa-circle-exclamation text-rose-600{% elif flash.category == 'warning' %}fa-solid fa-triangle-exclamation text-amber-600{% else %}fa-solid fa-circle-info text-sky-600{% endif %} text-lg mr-3"></i>
+                    <div class="text-sm font-medium flex-1">{{ flash.message }}</div>
+                    <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- SCROLLABLE PAGE BODY -->
+            <main class="flex-1 overflow-y-auto p-6 bg-slate-50/60">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        // Toggle Sidebar
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const sidebar = document.getElementById('sidebar');
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('-ml-64');
+            });
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

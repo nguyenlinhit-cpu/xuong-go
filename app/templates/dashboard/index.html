@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Top Welcome Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30 mb-2">
+                    <i class="fa-solid fa-crown text-[10px] mr-1.5"></i> Xưởng Gỗ Phúc Thịnh • Phiên Bản Quản Trị
+                </span>
+                <h2 class="text-2xl font-black tracking-tight text-white">Xin chào, {{ current_user.full_name }}! 👋</h2>
+                <p class="text-slate-300 text-sm mt-1">Dưới đây là tình hình hoạt động sản xuất, đơn hàng và kho vật tư hôm nay.</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="/orders/new" class="inline-flex items-center px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-amber-600/30 transition-all hover:scale-105">
+                    <i class="fa-solid fa-plus mr-2"></i> Lập đơn hàng mới
+                </a>
+                <a href="/production/new" class="inline-flex items-center px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl border border-slate-600 transition-all">
+                    <i class="fa-solid fa-hammer mr-2"></i> Tạo lệnh sản xuất
+                </a>
+            </div>
+        </div>
+        <!-- Decorative wood texture overlay -->
+        <i class="fa-solid fa-tree absolute -right-6 -bottom-10 text-9xl text-white/5 pointer-events-none"></i>
+    </div>
+
+    <!-- 4 KPI CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Card 1: Doanh thu tháng -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Doanh thu tháng này</p>
+                <h3 class="text-2xl font-extrabold text-slate-900 mt-1">{{ monthly_revenue | currency }}</h3>
+                <p class="text-xs text-emerald-600 font-medium mt-1 flex items-center">
+                    <i class="fa-solid fa-arrow-trend-up mr-1"></i> Tính trên các đơn đã chốt
+                </p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+        </div>
+
+        <!-- Card 2: Đơn đang sản xuất -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Đang sản xuất</p>
+                <h3 class="text-2xl font-extrabold text-amber-600 mt-1">{{ active_orders }} đơn hàng</h3>
+                <p class="text-xs text-slate-500 font-medium mt-1">Đang gia công tại xưởng</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-inner">
+                <i class="fa-solid fa-boxes-packing"></i>
+            </div>
+        </div>
+
+        <!-- Card 3: Đơn sắp đến hạn -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Sắp đến hạn giao</p>
+                <h3 class="text-2xl font-extrabold text-indigo-600 mt-1">{{ due_orders | length }} đơn</h3>
+                <p class="text-xs text-slate-500 font-medium mt-1">Giao trong 7 ngày tới</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner">
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+        </div>
+
+        <!-- Card 4: Nguyên liệu sắp hết -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Cảnh báo tồn kho</p>
+                <h3 class="text-2xl font-extrabold {% if low_stock_materials %}text-rose-600{% else %}text-slate-800{% endif %} mt-1">
+                    {{ low_stock_materials | length }} loại NVL
+                </h3>
+                <p class="text-xs text-rose-600 font-medium mt-1 flex items-center">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Tồn &le; mức tối thiểu
+                </p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl shadow-inner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID: CHART & LOW STOCK ALERT -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Biểu đồ doanh thu 12 tháng (2 cols) -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800">Doanh Thu 12 Tháng Gần Nhất</h3>
+                    <p class="text-xs text-slate-500">Biểu đồ tổng hợp doanh số bán thành phẩm đồ gỗ</p>
+                </div>
+                <span class="text-xs font-semibold px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg">
+                    Đơn vị: VNĐ
+                </span>
+            </div>
+            <div class="h-72 w-full">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Cảnh báo nguyên liệu sắp hết (1 col) -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-base font-bold text-slate-800 flex items-center">
+                    <i class="fa-solid fa-bell text-rose-500 mr-2"></i> Vật tư sắp hết
+                </h3>
+                <a href="/materials?low_stock_only=true" class="text-xs text-amber-600 hover:underline font-semibold">Xem tất cả</a>
+            </div>
+
+            {% if low_stock_materials %}
+            <div class="flex-1 overflow-y-auto space-y-3 pr-1 max-h-72">
+                {% for m in low_stock_materials %}
+                <div class="p-3 bg-rose-50/60 rounded-xl border border-rose-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-slate-900">{{ m.name }}</p>
+                        <p class="text-[11px] text-slate-500">Mã: {{ m.code }} | ĐVT: {{ m.unit }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-extrabold text-rose-600 block">{{ m.stock_quantity | number }} {{ m.unit }}</span>
+                        <span class="text-[10px] text-slate-400">Tối thiểu: {{ m.min_stock_alert | number }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100">
+                <a href="/inventory/receipts/new" class="w-full block text-center py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-xl shadow transition-colors">
+                    <i class="fa-solid fa-cart-plus mr-1"></i> Lập Phiếu Nhập Thêm Hàng
+                </a>
+            </div>
+            {% else %}
+            <div class="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
+                <i class="fa-solid fa-circle-check text-4xl text-emerald-400 mb-2"></i>
+                <p class="text-xs font-medium text-slate-600">Kho vật tư dồi dào, không có mặt hàng nào dưới mức tối thiểu!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- LOWER GRID: ĐƠN HÀNG SẮP ĐẾN HẠN & TIẾN ĐỘ LỆNH SẢN XUẤT -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Bảng 1: Đơn hàng sắp đến hạn -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-800 flex items-center">
+                    <i class="fa-solid fa-clock text-amber-500 mr-2"></i> Đơn hàng sắp hẹn giao (7 ngày tới)
+                </h3>
+                <a href="/orders" class="text-xs text-amber-600 hover:underline font-semibold">Tất cả đơn</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 font-semibold uppercase">
+                            <th class="py-2.5">Mã đơn</th>
+                            <th class="py-2.5">Khách hàng</th>
+                            <th class="py-2.5">Hạn giao</th>
+                            <th class="py-2.5">Trạng thái</th>
+                            <th class="py-2.5 text-right">Tổng tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for o in due_orders %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="py-2.5 font-bold text-amber-700">
+                                <a href="/orders/{{ o.id }}">{{ o.code }}</a>
+                            </td>
+                            <td class="py-2.5 text-slate-800 font-medium">{{ o.customer.name }}</td>
+                            <td class="py-2.5 text-rose-600 font-bold">{{ o.delivery_date | date }}</td>
+                            <td class="py-2.5">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if o.status == 'Đang sản xuất' %}bg-amber-100 text-amber-800{% elif o.status == 'Hoàn thiện' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-800{% endif %}">
+                                    {{ o.status }}
+                                </span>
+                            </td>
+                            <td class="py-2.5 text-right font-bold text-slate-900">{{ o.final_amount | currency }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="py-6 text-center text-slate-400">Không có đơn hàng nào cần giao gấp trong 7 ngày tới.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bảng 2: Lệnh sản xuất đang chạy -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-800 flex items-center">
+                    <i class="fa-solid fa-gears text-indigo-500 mr-2"></i> Lệnh sản xuất tại xưởng
+                </h3>
+                <a href="/production" class="text-xs text-amber-600 hover:underline font-semibold">Tất cả lệnh</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 font-semibold uppercase">
+                            <th class="py-2.5">Mã LSX</th>
+                            <th class="py-2.5">Sản phẩm</th>
+                            <th class="py-2.5 text-center">SL</th>
+                            <th class="py-2.5">Tiến độ công đoạn</th>
+                            <th class="py-2.5 text-right">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for p in running_productions %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="py-2.5 font-bold text-slate-900">
+                                <a href="/production/{{ p.id }}" class="text-amber-700 hover:underline">{{ p.code }}</a>
+                            </td>
+                            <td class="py-2.5 text-slate-800 font-medium">{{ p.product.name }}</td>
+                            <td class="py-2.5 text-center font-bold">{{ p.quantity }}</td>
+                            <td class="py-2.5">
+                                {% set done_stages = p.stages | selectattr('status', 'equalto', 'Hoàn thành') | list | length %}
+                                {% set total_stages = p.stages | length %}
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-24 bg-slate-200 rounded-full h-2 overflow-hidden">
+                                        <div class="bg-amber-600 h-2 rounded-full" style="width: {{ (done_stages / (total_stages or 1) * 100) }}%"></div>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 font-medium">{{ done_stages }}/{{ total_stages }}</span>
+                                </div>
+                            </td>
+                            <td class="py-2.5 text-right">
+                                <a href="/production/{{ p.id }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold">Cập nhật</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="py-6 text-center text-slate-400">Hiện không có lệnh sản xuất nào đang chạy.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Khởi tạo Chart.js biểu đồ doanh thu 12 tháng
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const chartLabels = {{ chart_labels | tojson }};
+    const chartData = {{ chart_data | tojson }};
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                data: chartData,
+                backgroundColor: 'rgba(217, 119, 6, 0.85)',
+                borderColor: 'rgba(180, 83, 9, 1)',
+                borderWidth: 1,
+                borderRadius: 8,
+                hoverBackgroundColor: 'rgba(180, 83, 9, 0.95)',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let val = context.parsed.y || 0;
+                            return ' Doanh thu: ' + val.toLocaleString('vi-VN') + ' đ';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            if (value >= 1000000) {
+                                return (value / 1000000) + ' tr';
+                            }
+                            return value.toLocaleString('vi-VN');
+                        }
+                    },
+                    grid: { color: 'rgba(241, 245, 249, 1)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+test_wood_factory.db
+backups/*.db

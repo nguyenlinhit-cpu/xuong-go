@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Định Mức Nguyên Vật Liệu (BOM): {{ product.name }}</h2>
+            <p class="text-xs text-slate-500">Mã SP: {{ product.code }} | Giá bán: {{ product.price | currency }}</p>
+        </div>
+        <a href="/products" class="text-xs text-slate-600 hover:text-slate-900 font-semibold flex items-center">
+            <i class="fa-solid fa-arrow-left mr-1.5"></i> Về danh sách sản phẩm
+        </a>
+    </div>
+
+    <!-- Summary Box -->
+    <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-2xl border border-amber-200/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <p class="text-xs font-semibold text-amber-900 uppercase tracking-wide">Giá vốn NVL ước tính cho 1 thành phẩm:</p>
+            <h3 class="text-2xl font-black text-amber-900 mt-0.5">{{ estimated_cost | currency }}</h3>
+            <p class="text-[11px] text-amber-700 mt-1">
+                Tỷ lệ chi phí vật tư / giá bán: 
+                <b>{{ ((estimated_cost / (product.price or 1)) * 100) | round(1) }}%</b>
+            </p>
+        </div>
+        <div class="text-right text-xs text-slate-600">
+            <p>Số loại vật tư trong định mức: <b>{{ product.bom_items | length }} loại</b></p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Dùng để tự động tính và trừ kho khi mở Lệnh Sản Xuất</p>
+        </div>
+    </div>
+
+    <!-- Form Thêm dòng BOM -->
+    {% if current_user.role in ['Admin', 'Quản đốc'] %}
+    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Thêm nguyên vật liệu vào định mức</h3>
+        <form method="POST" action="/products/{{ product.id }}/bom/add" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div class="sm:col-span-5">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Chọn nguyên vật liệu *</label>
+                <select name="material_id" required class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                    <option value="">-- Chọn vật tư kho --</option>
+                    {% for m in materials %}
+                    <option value="{{ m.id }}">{{ m.code }} - {{ m.name }} ({{ m.unit }}) [Giá: {{ m.unit_price | currency }}]</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="sm:col-span-3">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Số lượng / 1 sản phẩm *</label>
+                <input type="number" step="any" min="0.001" name="quantity" required placeholder="vd: 0.15" class="w-full px-3 py-2 border rounded-xl text-xs text-center font-bold focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div class="sm:col-span-3">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi chú bộ phận sử dụng</label>
+                <input type="text" name="note" placeholder="Mặt bàn, chân, sơn phủ..." class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div class="sm:col-span-1">
+                <button type="submit" class="w-full py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs shadow transition-colors flex items-center justify-center" title="Thêm">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Table BOM Items -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-5">
+        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3">Danh sách định mức nguyên vật liệu hiện tại</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b">
+                    <tr>
+                        <th class="py-2.5 px-3">Mã NVL</th>
+                        <th class="py-2.5 px-3">Tên nguyên vật liệu</th>
+                        <th class="py-2.5 px-3 text-center">ĐVT</th>
+                        <th class="py-2.5 px-3 text-right">Định mức (SL)</th>
+                        <th class="py-2.5 px-3 text-right">Đơn giá vốn</th>
+                        <th class="py-2.5 px-3 text-right">Thành tiền vốn</th>
+                        <th class="py-2.5 px-3">Ghi chú</th>
+                        {% if current_user.role in ['Admin', 'Quản đốc'] %}
+                        <th class="py-2.5 px-3 text-center">Xóa</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for item in product.bom_items %}
+                    <tr class="hover:bg-slate-50/70">
+                        <td class="py-2.5 px-3 font-mono font-bold text-amber-800">{{ item.material.code }}</td>
+                        <td class="py-2.5 px-3 font-semibold text-slate-900">{{ item.material.name }}</td>
+                        <td class="py-2.5 px-3 text-center text-slate-600">{{ item.material.unit }}</td>
+                        <td class="py-2.5 px-3 text-right font-extrabold text-slate-900">{{ item.quantity | number }}</td>
+                        <td class="py-2.5 px-3 text-right text-slate-600">{{ item.material.unit_price | currency }}</td>
+                        <td class="py-2.5 px-3 text-right font-bold text-amber-700">{{ (item.quantity * item.material.unit_price) | currency }}</td>
+                        <td class="py-2.5 px-3 text-slate-500 italic">{{ item.note or "—" }}</td>
+                        {% if current_user.role in ['Admin', 'Quản đốc'] %}
+                        <td class="py-2.5 px-3 text-center">
+                            <form method="POST" action="/products/{{ product.id }}/bom/{{ item.id }}/delete" onsubmit="return confirm('Xóa vật tư này khỏi định mức?');">
+                                <button type="submit" class="text-rose-500 hover:text-rose-700 p-1">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-400">Chưa thiết lập định mức nguyên vật liệu cho sản phẩm này. Hãy thêm dòng vật tư ở trên!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

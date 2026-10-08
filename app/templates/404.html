@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto text-center py-20">
+    <div class="w-20 h-20 bg-amber-100 text-amber-700 rounded-3xl mx-auto flex items-center justify-center text-4xl mb-6 shadow-sm">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <h2 class="text-3xl font-extrabold text-slate-900 mb-2">404 - Không tìm thấy trang</h2>
+    <p class="text-slate-600 text-sm mb-6">Trang bạn đang tìm kiếm không tồn tại hoặc đã được chuyển vị trí.</p>
+    <a href="/dashboard" class="inline-flex items-center px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl shadow-md transition-all">
+        <i class="fa-solid fa-house mr-2"></i>
+        Quay lại Bàn làm việc
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Danh Sách Đơn Hàng Bán</h2>
+            <p class="text-xs text-slate-500">Quản lý vòng đời đơn: Mới &rarr; Đang sản xuất &rarr; Hoàn thiện &rarr; Đã giao &rarr; Đã thanh toán</p>
+        </div>
+        <a href="/orders/new" class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">
+            <i class="fa-solid fa-plus mr-1.5"></i> Tạo Đơn Hàng Mới
+        </a>
+    </div>
+
+    <!-- Status tabs filter -->
+    <div class="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
+        <a href="/orders" class="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap {% if not selected_status %}bg-slate-900 text-white{% else %}bg-white border text-slate-600 hover:bg-slate-50{% endif %}">
+            Tất cả ({{ orders | length }})
+        </a>
+        {% for st in order_statuses %}
+        <a href="/orders?status_filter={{ st }}" class="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap {% if selected_status == st %}bg-amber-600 text-white{% else %}bg-white border text-slate-600 hover:bg-slate-50{% endif %}">
+            {{ st }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Table Orders -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4">Mã đơn hàng</th>
+                        <th class="py-3 px-4">Khách hàng</th>
+                        <th class="py-3 px-4">Ngày đặt</th>
+                        <th class="py-3 px-4">Hẹn giao hàng</th>
+                        <th class="py-3 px-4 text-center">Trạng thái</th>
+                        <th class="py-3 px-4 text-right">Tổng thanh toán</th>
+                        <th class="py-3 px-4 text-right">Đã cọc/trả</th>
+                        <th class="py-3 px-4 text-right">Còn nợ</th>
+                        <th class="py-3 px-4 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for o in orders %}
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="py-3 px-4 font-mono font-bold text-amber-800">
+                            <a href="/orders/{{ o.id }}" class="hover:underline">{{ o.code }}</a>
+                        </td>
+                        <td class="py-3 px-4 font-bold text-slate-900">{{ o.customer.name }}</td>
+                        <td class="py-3 px-4 text-slate-600">{{ o.order_date | date }}</td>
+                        <td class="py-3 px-4 text-slate-800 font-semibold">{{ o.delivery_date | date if o.delivery_date else "—" }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {% if o.status == 'Mới' %}bg-sky-100 text-sky-800{% elif o.status == 'Đang sản xuất' %}bg-amber-100 text-amber-800{% elif o.status == 'Hoàn thiện' %}bg-purple-100 text-purple-800{% elif o.status == 'Đã giao' %}bg-blue-100 text-blue-800{% elif o.status == 'Đã thanh toán' %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-800{% endif %}">
+                                {{ o.status }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-right font-black text-slate-900">{{ o.final_amount | currency }}</td>
+                        <td class="py-3 px-4 text-right font-medium text-emerald-600">{{ o.deposit_amount | currency }}</td>
+                        <td class="py-3 px-4 text-right font-bold {% if o.remaining_amount > 0 %}text-rose-600{% else %}text-slate-400{% endif %}">
+                            {{ o.remaining_amount | currency }}
+                        </td>
+                        <td class="py-3 px-4 text-right space-x-1">
+                            <a href="/orders/{{ o.id }}/print" target="_blank" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg inline-block transition-colors" title="In báo giá/hóa đơn">
+                                <i class="fa-solid fa-print"></i>
+                            </a>
+                            <a href="/orders/{{ o.id }}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded-lg inline-block transition-colors">
+                                Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="py-8 text-center text-slate-400">Không tìm thấy đơn hàng nào.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

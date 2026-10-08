@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Sao Lưu & Khôi Phục Dữ Liệu Hệ Thống</h2>
+            <p class="text-xs text-slate-500">Quản lý các bản sao lưu cơ sở dữ liệu SQLite và khôi phục khi cần thiết</p>
+        </div>
+        <form method="POST" action="/system/backup/create">
+            <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center">
+                <i class="fa-solid fa-cloud-arrow-down mr-1.5"></i> Tạo Bản Sao Lưu Mới Ngay
+            </button>
+        </form>
+    </div>
+
+    <!-- DB Status Box -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+            <p class="text-xs uppercase font-bold text-slate-400">File Cơ Sở Dữ Liệu Chính</p>
+            <h4 class="text-lg font-mono font-bold text-slate-800">wood_factory.db</h4>
+            <p class="text-xs text-slate-500">Dung lượng: <b>{{ db_size }} KB</b></p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-2">
+            <p class="text-xs uppercase font-bold text-slate-400">Khôi Phục Từ File Backup (*.db)</p>
+            <form method="POST" action="/system/backup/restore" enctype="multipart/form-data" class="flex items-center space-x-2" onsubmit="return confirm('CẢNH BÁO: Hành động này sẽ thay thế cơ sở dữ liệu hiện tại bằng file tải lên. Bạn có chắc chắn muốn khôi phục?');">
+                <input type="file" name="backup_file" accept=".db" required class="flex-1 text-xs file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100">
+                <button type="submit" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow">
+                    Khôi Phục
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danh sách các file backup -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-5">
+        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3">Các bản sao lưu đã tạo</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b">
+                    <tr>
+                        <th class="py-2.5 px-3">Tên file sao lưu</th>
+                        <th class="py-2.5 px-3">Thời gian tạo</th>
+                        <th class="py-2.5 px-3 text-right">Dung lượng</th>
+                        <th class="py-2.5 px-3 text-right">Tải về máy</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for b in backups %}
+                    <tr class="hover:bg-slate-50/70">
+                        <td class="py-2.5 px-3 font-mono font-bold text-slate-800">{{ b.filename }}</td>
+                        <td class="py-2.5 px-3 text-slate-600">{{ b.modified }}</td>
+                        <td class="py-2.5 px-3 text-right font-medium text-slate-700">{{ b.size_kb }} KB</td>
+                        <td class="py-2.5 px-3 text-right">
+                            <a href="/system/backup/download/{{ b.filename }}" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold inline-flex items-center">
+                                <i class="fa-solid fa-download mr-1"></i> Tải về (.db)
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-slate-400">Chưa có bản sao lưu nào. Hãy bấm nút tạo bản sao lưu ở trên!</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

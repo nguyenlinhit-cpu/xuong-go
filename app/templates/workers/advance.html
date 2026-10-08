@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Quản Lý Tạm Ứng Lương Thợ</h2>
+            <p class="text-xs text-slate-500">Ghi nhận các khoản tiền tạm ứng trước để tự động khấu trừ vào bảng lương tháng</p>
+        </div>
+        <button onclick="document.getElementById('modal-advance').classList.remove('hidden')"
+            class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md transition-all">
+            <i class="fa-solid fa-plus mr-1.5"></i> Tạo Phiếu Tạm Ứng Mới
+        </button>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4">Ngày ứng</th>
+                        <th class="py-3 px-4">Mã thợ</th>
+                        <th class="py-3 px-4">Họ và tên</th>
+                        <th class="py-3 px-4 text-right">Số tiền tạm ứng</th>
+                        <th class="py-3 px-4">Lý do ứng tiền</th>
+                        <th class="py-3 px-4 text-center">Trạng thái khấu trừ</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for a in advances %}
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="py-3 px-4 text-slate-600 font-mono">{{ a.advance_date | date }}</td>
+                        <td class="py-3 px-4 font-mono font-bold text-amber-800">{{ a.worker.code }}</td>
+                        <td class="py-3 px-4 font-bold text-slate-900">{{ a.worker.full_name }}</td>
+                        <td class="py-3 px-4 text-right font-black text-rose-600">{{ a.amount | currency }}</td>
+                        <td class="py-3 px-4 text-slate-600 italic">{{ a.reason or "Ứng lương tiêu dùng" }}</td>
+                        <td class="py-3 px-4 text-center">
+                            {% if a.is_deducted %}
+                            <span class="inline-flex items-center text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                Đã trừ vào lương
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full text-[10px] font-bold border border-amber-200">
+                                Chưa khấu trừ
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-slate-400">Chưa có bản ghi tạm ứng lương nào.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal lập phiếu ứng lương -->
+<div id="modal-advance" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100">
+        <h3 class="font-bold text-slate-900 text-base mb-1">Lập Phiếu Tạm Ứng Lương</h3>
+        <p class="text-xs text-slate-500 mb-4">Khoản chi này sẽ được tự động ghi vào Sổ quỹ tiền mặt</p>
+        <form method="POST" action="/workers/advances" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Thợ tạm ứng *</label>
+                <select name="worker_id" required class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                    <option value="">-- Chọn thợ mộc --</option>
+                    {% for w in workers %}
+                    <option value="{{ w.id }}">{{ w.code }} - {{ w.full_name }} ({{ w.skill_level }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ngày tạm ứng *</label>
+                <input type="date" name="advance_date" value="{{ today_str }}" required class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số tiền ứng (VNĐ) *</label>
+                <input type="number" step="10000" min="50000" name="amount" required placeholder="vd: 2000000" class="w-full px-3 py-2 border rounded-xl text-xs font-bold text-rose-600 focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Lý do tạm ứng</label>
+                <input type="text" name="reason" placeholder="Việc gia đình, mua sắm..." class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+            </div>
+            <div class="pt-3 flex justify-end space-x-2">
+                <button type="button" onclick="document.getElementById('modal-advance').classList.add('hidden')" class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50">Hủy</button>
+                <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md">Chi Tiền Ứng</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

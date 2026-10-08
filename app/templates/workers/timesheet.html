@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">{{ title }}</h2>
+            <p class="text-xs text-slate-500">Ghi nhận ngày công và số giờ tăng ca của thợ tại xưởng</p>
+        </div>
+        <!-- Bộ chọn ngày -->
+        <form method="GET" action="/workers/timesheets" class="flex items-center space-x-2">
+            <label class="text-xs font-bold text-slate-700">Chọn ngày:</label>
+            <input type="date" name="target_date" value="{{ target_date_str }}" onchange="this.form.submit()" class="px-3 py-1.5 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+        </form>
+    </div>
+
+    <form method="POST" action="/workers/timesheets" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-5 space-y-4">
+        <input type="hidden" name="work_date" value="{{ target_date_str }}">
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b">
+                    <tr>
+                        <th class="py-2.5 px-3">Mã thợ</th>
+                        <th class="py-2.5 px-3">Họ và tên</th>
+                        <th class="py-2.5 px-3">Tay nghề</th>
+                        <th class="py-2.5 px-3 w-40 text-center">Công làm việc</th>
+                        <th class="py-2.5 px-3 w-32 text-center">Tăng ca (giờ)</th>
+                        <th class="py-2.5 px-3 min-w-[200px]">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for w in workers %}
+                    {% set rec = records.get(w.id) %}
+                    <tr class="hover:bg-slate-50/70">
+                        <input type="hidden" name="worker_id[]" value="{{ w.id }}">
+                        <td class="py-2.5 px-3 font-mono font-bold text-amber-800">{{ w.code }}</td>
+                        <td class="py-2.5 px-3 font-bold text-slate-900">{{ w.full_name }}</td>
+                        <td class="py-2.5 px-3 text-slate-600">{{ w.skill_level or "Thợ" }}</td>
+                        <td class="py-2.5 px-3 text-center">
+                            <select name="work_units[]" class="w-full px-2 py-1.5 border rounded-lg text-xs font-semibold focus:ring-1 focus:ring-amber-500 outline-none">
+                                <option value="1.0" {% if rec and rec.work_units == 1.0 %}selected{% elif not rec %}selected{% endif %}>1.0 (Cả ngày)</option>
+                                <option value="0.5" {% if rec and rec.work_units == 0.5 %}selected{% endif %}>0.5 (Nửa ngày)</option>
+                                <option value="0.0" {% if rec and rec.work_units == 0.0 %}selected{% endif %}>0.0 (Nghỉ phép/Nghỉ)</option>
+                            </select>
+                        </td>
+                        <td class="py-2.5 px-3 text-center">
+                            <input type="number" step="0.5" min="0" max="12" name="overtime_hours[]" value="{{ rec.overtime_hours if rec else 0.0 }}" class="w-full px-2 py-1.5 border rounded-lg text-xs text-center font-bold focus:ring-1 focus:ring-amber-500 outline-none">
+                        </td>
+                        <td class="py-2.5 px-3">
+                            <input type="text" name="notes[]" value="{{ rec.note if rec and rec.note else '' }}" placeholder="Lý do nghỉ, công đoạn tăng ca..." class="w-full px-2 py-1.5 border rounded-lg text-xs focus:ring-1 focus:ring-amber-500 outline-none">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
+            <a href="/workers" class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50">Hủy</a>
+            <button type="submit" class="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md">
+                <i class="fa-solid fa-floppy-disk mr-1.5"></i> Lưu Bảng Chấm Công
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

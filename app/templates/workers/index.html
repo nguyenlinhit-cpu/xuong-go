@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Danh Sách Thợ Mộc & Nhân Công Xưởng</h2>
+            <p class="text-xs text-slate-500">Hồ sơ thợ cả, thợ phụ, thợ máy tubi/cưa, thợ sơn PU và hình thức tính lương</p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <a href="/workers/timesheets" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow transition-all">
+                <i class="fa-solid fa-calendar-check mr-1.5"></i> Bảng Chấm Công
+            </a>
+            {% if current_user.role in ['Admin', 'Quản đốc'] %}
+            <a href="/workers/new" class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">
+                <i class="fa-solid fa-user-plus mr-1.5"></i> Thêm Thợ Mới
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4">Mã thợ</th>
+                        <th class="py-3 px-4">Họ và tên</th>
+                        <th class="py-3 px-4">Số điện thoại</th>
+                        <th class="py-3 px-4">Tay nghề / Vị trí</th>
+                        <th class="py-3 px-4">Hình thức lương</th>
+                        <th class="py-3 px-4 text-right">Mức lương cơ sở</th>
+                        <th class="py-3 px-4 text-center">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for w in workers %}
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="py-3 px-4 font-mono font-bold text-amber-800">{{ w.code }}</td>
+                        <td class="py-3 px-4 font-bold text-slate-900">{{ w.full_name }}</td>
+                        <td class="py-3 px-4 text-slate-600 font-medium">{{ w.phone or "—" }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                                {{ w.skill_level or "Thợ mộc" }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-slate-600 font-medium">{{ w.salary_type }}</td>
+                        <td class="py-3 px-4 text-right font-black text-slate-900">
+                            {{ w.base_salary_rate | currency }}{{ "/ngày" if w.salary_type == "Lương ngày" else "/sp" }}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            {% if w.is_active %}
+                            <span class="inline-flex items-center text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] font-bold border border-emerald-200">
+                                Đang làm việc
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                Đã nghỉ việc
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-400">Chưa có hồ sơ thợ mộc nào.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

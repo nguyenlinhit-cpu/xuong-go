@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <h2 class="text-lg font-bold text-slate-900">{{ title }}</h2>
+            <a href="/suppliers" class="text-xs text-slate-600 hover:text-slate-900 font-semibold flex items-center">
+                <i class="fa-solid fa-arrow-left mr-1.5"></i> Quay lại
+            </a>
+        </div>
+
+        <form method="POST" action="/suppliers/new" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mã nhà cung cấp *</label>
+                    <input type="text" name="code" required placeholder="vd: NCC-05" class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none uppercase font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tên nhà cung cấp *</label>
+                    <input type="text" name="name" required placeholder="vd: Cty TNHH Gỗ Quốc Tế..." class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số điện thoại liên hệ</label>
+                    <input type="text" name="phone" placeholder="0912..." class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email</label>
+                    <input type="email" name="email" placeholder="contact@..." class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Địa chỉ kho / trụ sở</label>
+                    <input type="text" name="address" placeholder="KCN, TP..." class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mã số thuế</label>
+                    <input type="text" name="tax_id" placeholder="010..." class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ghi chú về năng lực cung ứng</label>
+                <textarea name="note" rows="3" placeholder="Chính sách chiết khấu, thời gian giao hàng, loại gỗ chủ lực..." class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
+                <a href="/suppliers" class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-50">Hủy</a>
+                <button type="submit" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-md">Thêm Nhà Cung Cấp</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

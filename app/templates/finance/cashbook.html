@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-200">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Sổ Quỹ Tiền Mặt & Ngân Hàng</h2>
+            <p class="text-xs text-slate-500">Ghi nhận toàn bộ dòng tiền vào/ra (Phiếu thu / Phiếu chi) của xưởng sản xuất</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <a href="/finance/export-cashbook-excel" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow flex items-center">
+                <i class="fa-solid fa-file-excel mr-1.5"></i> Xuất Excel Sổ Quỹ
+            </a>
+            {% if current_user.role in ['Admin', 'Kế toán'] %}
+            <a href="/finance/receipt-voucher/new" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow flex items-center">
+                <i class="fa-solid fa-plus mr-1.5"></i> Lập Phiếu Thu
+            </a>
+            <a href="/finance/payment-voucher/new" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow flex items-center">
+                <i class="fa-solid fa-minus mr-1.5"></i> Lập Phiếu Chi
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 3 Cards Tồn Quỹ, Tổng Thu, Tổng Chi -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tổng thu vào</p>
+                <h3 class="text-2xl font-extrabold text-emerald-600 mt-1">+ {{ total_income | currency }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-arrow-down-left text-lg"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tổng chi ra</p>
+                <h3 class="text-2xl font-extrabold text-rose-600 mt-1">- {{ total_expense | currency }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-arrow-up-right text-lg"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tồn quỹ hiện tại</p>
+                <h3 class="text-2xl font-black {% if balance >= 0 %}text-slate-900{% else %}text-rose-600{% endif %} mt-1">
+                    {{ balance | currency }}
+                </h3>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-vault"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter theo khoảng ngày -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+        <form method="GET" action="/finance/cashbook" class="flex flex-wrap items-center gap-3 text-xs">
+            <span class="font-bold text-slate-700">Lọc theo khoảng ngày:</span>
+            <div class="flex items-center space-x-1">
+                <span>Từ:</span>
+                <input type="date" name="from_date" value="{{ from_date }}" class="px-2.5 py-1.5 border rounded-lg outline-none">
+            </div>
+            <div class="flex items-center space-x-1">
+                <span>Đến:</span>
+                <input type="date" name="to_date" value="{{ to_date }}" class="px-2.5 py-1.5 border rounded-lg outline-none">
+            </div>
+            <button type="submit" class="px-3 py-1.5 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700">Xem</button>
+            {% if from_date or to_date %}
+            <a href="/finance/cashbook" class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg font-semibold hover:bg-slate-200">Xóa lọc</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Bảng danh sách phiếu thu chi -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4">Mã chứng từ</th>
+                        <th class="py-3 px-4">Ngày</th>
+                        <th class="py-3 px-4 text-center">Loại</th>
+                        <th class="py-3 px-4">Danh mục thu / chi</th>
+                        <th class="py-3 px-4">Đối tượng (Nộp / Nhận)</th>
+                        <th class="py-3 px-4 text-center">Hình thức</th>
+                        <th class="py-3 px-4 text-right">Số tiền</th>
+                        <th class="py-3 px-4">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for t in transactions %}
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="py-3 px-4 font-mono font-bold {% if t.transaction_type == 'Thu' %}text-emerald-800{% else %}text-rose-800{% endif %}">
+                            {{ t.code }}
+                        </td>
+                        <td class="py-3 px-4 text-slate-600">{{ t.transaction_date | date }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if t.transaction_type == 'Thu' %}bg-emerald-100 text-emerald-800{% else %}bg-rose-100 text-rose-800{% endif %}">
+                                {{ t.transaction_type }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 font-bold text-slate-800">{{ t.category }}</td>
+                        <td class="py-3 px-4 text-slate-700 font-medium">{{ t.payer_or_receiver or "—" }}</td>
+                        <td class="py-3 px-4 text-center text-slate-600">{{ t.payment_method }}</td>
+                        <td class="py-3 px-4 text-right font-black {% if t.transaction_type == 'Thu' %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {{ "+" if t.transaction_type == 'Thu' else "-" }}{{ t.amount | currency }}
+                        </td>
+                        <td class="py-3 px-4 text-slate-500 truncate max-w-xs">{{ t.note or "—" }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-400">Chưa có giao dịch thu chi nào trong kỳ này.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Lịch Sử Biến Động Kho (Thẻ Kho)</h2>
+            <p class="text-xs text-slate-500">Ghi nhận chi tiết từng lần Nhập / Xuất / Điều chỉnh nguyên vật liệu</p>
+        </div>
+        <a href="/materials" class="px-3.5 py-2 border rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">
+            Xem danh mục vật tư
+        </a>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4">Thời gian</th>
+                        <th class="py-3 px-4">Mã NVL</th>
+                        <th class="py-3 px-4">Tên nguyên vật liệu</th>
+                        <th class="py-3 px-4 text-center">Giao dịch</th>
+                        <th class="py-3 px-4">Mã tham chiếu</th>
+                        <th class="py-3 px-4 text-right">Biến động</th>
+                        <th class="py-3 px-4 text-right">Tồn sau GD</th>
+                        <th class="py-3 px-4">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for t in transactions %}
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="py-3 px-4 text-slate-500 font-mono">{{ t.created_at | datetime }}</td>
+                        <td class="py-3 px-4 font-mono font-bold text-amber-800">{{ t.material.code }}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-900">{{ t.material.name }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if t.transaction_type == 'Nhập kho' %}bg-emerald-100 text-emerald-800{% elif t.transaction_type == 'Xuất kho' %}bg-rose-100 text-rose-800{% else %}bg-slate-100 text-slate-800{% endif %}">
+                                {{ t.transaction_type }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 font-mono font-bold text-slate-700">{{ t.reference_code }}</td>
+                        <td class="py-3 px-4 text-right font-extrabold {% if t.quantity_change > 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {{ "+" if t.quantity_change > 0 else "" }}{{ t.quantity_change | number }} {{ t.material.unit }}
+                        </td>
+                        <td class="py-3 px-4 text-right font-bold text-slate-900">{{ t.balance_after | number }} {{ t.material.unit }}</td>
+                        <td class="py-3 px-4 text-slate-500 truncate max-w-xs">{{ t.note or "—" }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-400">Chưa có giao dịch kho nào.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

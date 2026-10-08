@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Danh Sách Phiếu Xuất Kho (PXK)</h2>
+            <p class="text-xs text-slate-500">Xuất gỗ và vật tư phục vụ lệnh sản xuất, bán buôn hoặc hao hụt xưởng</p>
+        </div>
+        {% if current_user.role in ['Admin', 'Quản lý kho', 'Quản đốc'] %}
+        <a href="/inventory/issues/new" class="inline-flex items-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">
+            <i class="fa-solid fa-plus mr-1.5"></i> Lập Phiếu Xuất Kho
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-bold tracking-wider">
+                    <tr>
+                        <th class="py-3 px-4">Mã PXK</th>
+                        <th class="py-3 px-4">Ngày xuất</th>
+                        <th class="py-3 px-4">Lý do xuất kho</th>
+                        <th class="py-3 px-4">Lệnh sản xuất</th>
+                        <th class="py-3 px-4 text-center">Số mặt hàng</th>
+                        <th class="py-3 px-4 text-right">Tổng giá trị xuất</th>
+                        <th class="py-3 px-4">Người xuất</th>
+                        <th class="py-3 px-4 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for i in issues %}
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="py-3 px-4 font-mono font-bold text-rose-800">
+                            <a href="/inventory/issues/{{ i.id }}" class="hover:underline">{{ i.code }}</a>
+                        </td>
+                        <td class="py-3 px-4 text-slate-700 font-medium">{{ i.date | date }}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-800">{{ i.reason }}</td>
+                        <td class="py-3 px-4">
+                            {% if i.production_order %}
+                            <a href="/production/{{ i.production_order.id }}" class="text-indigo-600 hover:underline font-bold">{{ i.production_order.code }}</a>
+                            {% else %}
+                            <span class="text-slate-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-center font-bold text-slate-600">{{ i.details | length }} dòng</td>
+                        <td class="py-3 px-4 text-right font-extrabold text-slate-900">{{ i.total_amount | currency }}</td>
+                        <td class="py-3 px-4 text-slate-500">{{ i.created_by.full_name if i.created_by else "—" }}</td>
+                        <td class="py-3 px-4 text-right">
+                            <a href="/inventory/issues/{{ i.id }}" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold transition-colors">
+                                Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="py-8 text-center text-slate-400">Chưa có phiếu xuất kho nào.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
